@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wings Discord Test</title>
+</head>
+<body>
+
+<button onclick="sendToDiscord()">
+    Send to Discord
+</button>
+
+<script>
+async function sendToDiscord() {
+    try {
+        const response = await fetch(
+            "http://de1.bot-hosting.cloud:25338/send",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("✅ Sent to Discord!");
+        } else {
+            alert("❌ Failed");
+        }
+
+    } catch (error) {
+        console.error(error);
+        alert("❌ Could not connect to bot");
+    }
+}
+</script>
+
+</body>
+</html>
