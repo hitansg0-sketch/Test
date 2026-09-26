@@ -8,8 +8,9 @@
 
 <body style="font-family:sans-serif; max-width:400px; margin:auto; padding:20px;">
 
-  <!-- Authentication Section -->
+  <!-- LOGIN / SIGNUP -->
   <div id="auth-section">
+
     <h2>Wings Login & Signup</h2>
 
     <input
@@ -20,32 +21,41 @@
     >
 
     <input
-      id="pass"
+      id="password"
       type="password"
       placeholder="Password"
       style="width:100%; box-sizing:border-box; margin-bottom:10px; padding:10px;"
     >
 
-    <button onclick="login()" style="width:48%; padding:10px;">
+    <button
+      id="login-btn"
+      style="width:48%; padding:10px;"
+    >
       Log In
     </button>
 
-    <button onclick="signup()" style="width:48%; padding:10px;">
+    <button
+      id="signup-btn"
+      style="width:48%; padding:10px;"
+    >
       Sign Up
     </button>
 
     <p id="auth-status"></p>
+
   </div>
 
 
-  <!-- App Section -->
+  <!-- APP -->
   <div id="app-section" style="display:none;">
 
-    <h2>Welcome, <span id="user-display"></span></h2>
+    <h2>
+      Welcome, <span id="user-display"></span>
+    </h2>
 
     <button
-      onclick="logout()"
-      style="padding:6px 12px; margin-bottom:15px;"
+      id="logout-btn"
+      style="padding:7px 12px; margin-bottom:15px;"
     >
       Log Out
     </button>
@@ -61,9 +71,15 @@
     <br><br>
 
     <button
-      id="save-button"
-      onclick="saveNote()"
-      style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; cursor:pointer;"
+      id="save-btn"
+      style="
+        width:100%;
+        padding:12px;
+        background:#4CAF50;
+        color:white;
+        border:none;
+        cursor:pointer;
+      "
     >
       Save to Cloud
     </button>
@@ -75,276 +91,405 @@
 
   <script type="module">
 
-    // Firebase
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { createClient }
+      from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyA-0R_fOTkrU59ACvPpBY-6RBDOhiTTpm8",
-      authDomain: "wings-6c6aa.firebaseapp.com",
-      projectId: "wings-6c6aa",
-      storageBucket: "wings-6c6aa.appspot.com",
-      messagingSenderId: "960472992388",
-      appId: "1:960472992388:web:3979fadda252d3f446d0d1"
-    };
+    // ============================
+    // SUPABASE CONFIG
+    // ============================
+
+    const SUPABASE_URL =
+      "https://ckolqrstldnjnkfpypyf.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_babfAUwiWenPUg9io3WuOw_fxMO_fmt";
 
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
 
-    // Get elements
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("pass");
-    const noteBox = document.getElementById("note-box");
+    // ============================
+    // ELEMENTS
+    // ============================
 
-    const authSection = document.getElementById("auth-section");
-    const appSection = document.getElementById("app-section");
+    const emailInput =
+      document.getElementById("email");
 
-    const userDisplay = document.getElementById("user-display");
+    const passwordInput =
+      document.getElementById("password");
 
-    const authStatus = document.getElementById("auth-status");
-    const saveStatus = document.getElementById("save-status");
-    const saveButton = document.getElementById("save-button");
+    const authSection =
+      document.getElementById("auth-section");
+
+    const appSection =
+      document.getElementById("app-section");
+
+    const userDisplay =
+      document.getElementById("user-display");
+
+    const noteBox =
+      document.getElementById("note-box");
+
+    const authStatus =
+      document.getElementById("auth-status");
+
+    const saveStatus =
+      document.getElementById("save-status");
+
+    const saveButton =
+      document.getElementById("save-btn");
 
 
-    // =========================
+    // ============================
     // SIGN UP
-    // =========================
+    // ============================
 
-    window.signup = async () => {
+    document
+      .getElementById("signup-btn")
+      .addEventListener("click", async () => {
 
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+        const email =
+          emailInput.value.trim();
 
-      if (!email || !password) {
-        authStatus.textContent = "Please enter an email and password.";
-        return;
-      }
+        const password =
+          passwordInput.value;
 
-      authStatus.textContent = "Creating account...";
+        if (!email || !password) {
+          authStatus.textContent =
+            "Please enter an email and password.";
+          return;
+        }
 
-      try {
+        authStatus.textContent =
+          "Creating account...";
 
-        await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        const { data, error } =
+          await supabase.auth.signUp({
+            email: email,
+            password: password
+          });
 
-        authStatus.textContent = "";
+        if (error) {
 
-      } catch (error) {
+          console.error(error);
 
-        console.error(error);
-        authStatus.textContent = "Signup error: " + error.message;
+          authStatus.textContent =
+            "Signup error: " + error.message;
 
-      }
-    };
+          return;
+        }
+
+        console.log("Signup successful:", data);
+
+        authStatus.textContent =
+          "✓ Account created!";
+
+      });
 
 
-    // =========================
+    // ============================
     // LOGIN
-    // =========================
+    // ============================
 
-    window.login = async () => {
+    document
+      .getElementById("login-btn")
+      .addEventListener("click", async () => {
 
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+        const email =
+          emailInput.value.trim();
 
-      if (!email || !password) {
-        authStatus.textContent = "Please enter an email and password.";
-        return;
-      }
+        const password =
+          passwordInput.value;
 
-      authStatus.textContent = "Logging in...";
+        if (!email || !password) {
+          authStatus.textContent =
+            "Please enter an email and password.";
+          return;
+        }
 
-      try {
+        authStatus.textContent =
+          "Logging in...";
 
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        const { data, error } =
+          await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
 
-        authStatus.textContent = "";
+        if (error) {
 
-      } catch (error) {
+          console.error(error);
 
-        console.error(error);
-        authStatus.textContent = "Login error: " + error.message;
+          authStatus.textContent =
+            "Login error: " + error.message;
 
-      }
-    };
+          return;
+        }
+
+        console.log("Login successful:", data);
+
+        authStatus.textContent =
+          "✓ Logged in!";
+
+      });
 
 
-    // =========================
+    // ============================
     // LOGOUT
-    // =========================
+    // ============================
 
-    window.logout = async () => {
+    document
+      .getElementById("logout-btn")
+      .addEventListener("click", async () => {
 
-      try {
+        await supabase.auth.signOut();
 
-        await signOut(auth);
-
-      } catch (error) {
-
-        console.error(error);
-        alert("Logout error: " + error.message);
-
-      }
-    };
+      });
 
 
-    // =========================
-    // SAVE NOTE
-    // =========================
+    // ============================
+    // LOAD USER DATA
+    // ============================
 
-    window.saveNote = async () => {
+    async function loadUserData(user) {
 
-      const user = auth.currentUser;
+      console.log(
+        "Loading data for:",
+        user.id
+      );
 
-      if (!user) {
-        saveStatus.textContent = "You are not logged in.";
-        return;
-      }
+      const { data, error } =
+        await supabase
+          .from("users")
+          .select("saved_text")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      const text = noteBox.value;
 
-      saveButton.disabled = true;
-      saveButton.textContent = "Saving...";
-      saveStatus.textContent = "Saving to cloud...";
+      if (error) {
 
-      try {
-
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            savedText: text,
-            updatedAt: new Date().toISOString()
-          },
-          {
-            merge: true
-          }
+        console.error(
+          "Load error:",
+          error
         );
-
-        saveStatus.textContent = "✓ Saved to cloud";
-        saveButton.textContent = "Saved ✓";
-
-        setTimeout(() => {
-          saveButton.textContent = "Save to Cloud";
-          saveButton.disabled = false;
-        }, 1500);
-
-      } catch (error) {
-
-        console.error("Firestore save error:", error);
 
         saveStatus.textContent =
-          "❌ Save failed: " + error.message;
+          "Cloud load error: " +
+          error.message;
 
-        saveButton.textContent = "Try Again";
-        saveButton.disabled = false;
-
-      }
-    };
-
-
-    // =========================
-    // FIRESTORE REAL-TIME SYNC
-    // =========================
-
-    let unsubscribeFirestore = null;
-
-
-    onAuthStateChanged(auth, (user) => {
-
-      if (unsubscribeFirestore) {
-        unsubscribeFirestore();
-        unsubscribeFirestore = null;
+        return;
       }
 
 
-      if (user) {
+      if (data) {
 
-        // Show app
-        authSection.style.display = "none";
-        appSection.style.display = "block";
+        noteBox.value =
+          data.saved_text || "";
 
-        userDisplay.textContent = user.email;
-
-
-        // Listen to user's document
-        const userDocument = doc(
-          db,
-          "users",
-          user.uid
-        );
-
-
-        unsubscribeFirestore = onSnapshot(
-          userDocument,
-
-          (snapshot) => {
-
-            if (snapshot.exists()) {
-
-              const data = snapshot.data();
-
-              // Don't overwrite unnecessarily
-              if (document.activeElement !== noteBox) {
-                noteBox.value = data.savedText || "";
-              }
-
-            }
-
-          },
-
-          (error) => {
-
-            console.error(
-              "Firestore listener error:",
-              error
-            );
-
-            saveStatus.textContent =
-              "Cloud sync error: " + error.message;
-
-          }
+        console.log(
+          "Cloud data loaded."
         );
 
       } else {
 
-        // Show login
-        authSection.style.display = "block";
-        appSection.style.display = "none";
-
-        noteBox.value = "";
-        userDisplay.textContent = "";
+        console.log(
+          "No saved data yet."
+        );
 
       }
 
-    });
+    }
+
+
+    // ============================
+    // SAVE TO CLOUD
+    // ============================
+
+    async function saveNote() {
+
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
+
+
+      if (!user) {
+
+        saveStatus.textContent =
+          "❌ You are not logged in.";
+
+        return;
+      }
+
+
+      saveButton.disabled = true;
+
+      saveButton.textContent =
+        "Saving...";
+
+      saveStatus.textContent =
+        "☁️ Saving to cloud...";
+
+
+      console.log(
+        "Saving for user:",
+        user.id
+      );
+
+
+      const { error } =
+        await supabase
+          .from("users")
+          .upsert(
+            {
+              user_id: user.id,
+              saved_text: noteBox.value,
+              updated_at: new Date().toISOString()
+            },
+            {
+              onConflict: "user_id"
+            }
+          );
+
+
+      if (error) {
+
+        console.error(
+          "SAVE ERROR:",
+          error
+        );
+
+        saveStatus.textContent =
+          "❌ Save failed: " +
+          error.message;
+
+        saveButton.textContent =
+          "Try Again";
+
+        saveButton.disabled = false;
+
+        return;
+      }
+
+
+      console.log(
+        "SAVE SUCCESSFUL"
+      );
+
+
+      saveStatus.textContent =
+        "✅ Saved to cloud!";
+
+      saveButton.textContent =
+        "Saved ✓";
+
+
+      setTimeout(() => {
+
+        saveButton.textContent =
+          "Save to Cloud";
+
+        saveButton.disabled =
+          false;
+
+      }, 2000);
+
+    }
+
+
+    document
+      .getElementById("save-btn")
+      .addEventListener(
+        "click",
+        saveNote
+      );
+
+
+    // ============================
+    // AUTH STATE
+    // ============================
+
+    supabase.auth.onAuthStateChange(
+      async (event, session) => {
+
+        console.log(
+          "Auth event:",
+          event
+        );
+
+
+        if (session && session.user) {
+
+          const user =
+            session.user;
+
+
+          authSection.style.display =
+            "none";
+
+          appSection.style.display =
+            "block";
+
+
+          userDisplay.textContent =
+            user.email;
+
+
+          await loadUserData(user);
+
+
+        } else {
+
+          authSection.style.display =
+            "block";
+
+          appSection.style.display =
+            "none";
+
+          userDisplay.textContent =
+            "";
+
+          noteBox.value =
+            "";
+
+        }
+
+      }
+    );
+
+
+    // ============================
+    // CHECK EXISTING SESSION
+    // ============================
+
+    const {
+      data: {
+        session
+      }
+    } = await supabase.auth.getSession();
+
+
+    if (session && session.user) {
+
+      authSection.style.display =
+        "none";
+
+      appSection.style.display =
+        "block";
+
+      userDisplay.textContent =
+        session.user.email;
+
+      await loadUserData(
+        session.user
+      );
+
+    }
 
   </script>
 
