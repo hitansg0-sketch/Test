@@ -127,15 +127,11 @@ button {
 </style>
 </head>
 
-
 <body>
 
 <div class="container">
 
-  <!-- ========================= -->
   <!-- AUTH -->
-  <!-- ========================= -->
-
   <div id="auth-section">
 
     <div class="card">
@@ -174,43 +170,29 @@ button {
 
       </div>
 
-      <p
-        id="auth-status"
-        class="status"
-      ></p>
+      <p id="auth-status" class="status"></p>
 
     </div>
 
   </div>
 
 
-  <!-- ========================= -->
   <!-- APP -->
-  <!-- ========================= -->
-
-  <div
-    id="app-section"
-    style="display:none;"
-  >
+  <div id="app-section" style="display:none;">
 
     <!-- PROFILE -->
-
     <div class="card">
 
       <h2>Your Profile</h2>
 
-      <p
-        id="user-email"
-        class="email"
-      ></p>
-
+      <p id="user-email" class="email"></p>
 
       <div class="profile-picture-wrapper">
 
         <img
           id="profile-picture"
           class="profile-picture"
-          src=""
+          src="https://placehold.co/120x120"
           alt="Profile Picture"
         >
 
@@ -294,8 +276,7 @@ button {
     </div>
 
 
-    <!-- SAVED NOTE -->
-
+    <!-- CLOUD NOTE -->
     <div class="card">
 
       <h2>Cloud Note</h2>
@@ -321,7 +302,6 @@ button {
 
 
     <!-- LOGOUT -->
-
     <div class="card">
 
       <button
@@ -452,6 +432,7 @@ document
 
 
     const {
+      data,
       error
     } =
       await supabase.auth.signUp({
@@ -468,6 +449,12 @@ document
 
       return;
     }
+
+
+    console.log(
+      "SIGNUP RESULT:",
+      data
+    );
 
 
     authStatus.textContent =
@@ -502,6 +489,7 @@ document
 
 
     const {
+      data,
       error
     } =
       await supabase.auth.signInWithPassword({
@@ -512,12 +500,23 @@ document
 
     if (error) {
 
+      console.error(
+        "LOGIN ERROR:",
+        error
+      );
+
       authStatus.textContent =
         "Login error: " +
         error.message;
 
       return;
     }
+
+
+    console.log(
+      "LOGIN SUCCESS:",
+      data
+    );
 
 
     authStatus.textContent =
@@ -557,7 +556,10 @@ async function loadProfile(user) {
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "PROFILE LOAD ERROR:",
+      error
+    );
 
     profileStatus.textContent =
       "Profile load error: " +
@@ -607,6 +609,7 @@ async function loadProfile(user) {
 
     profilePicture.src =
       "https://placehold.co/120x120";
+
   }
 
 }
@@ -651,25 +654,25 @@ document
           user_id: user.id,
 
           profile_name:
-            profileName.value,
+            profileName.value.trim(),
 
           bio:
-            bio.value,
+            bio.value.trim(),
 
           address:
-            address.value,
+            address.value.trim(),
 
           phone:
-            phone.value,
+            phone.value.trim(),
 
           city:
-            city.value,
+            city.value.trim(),
 
           state:
-            state.value,
+            state.value.trim(),
 
           pincode:
-            pincode.value,
+            pincode.value.trim(),
 
           updated_at:
             new Date().toISOString()
@@ -679,7 +682,10 @@ document
 
     if (error) {
 
-      console.error(error);
+      console.error(
+        "PROFILE SAVE ERROR:",
+        error
+      );
 
       profileStatus.textContent =
         "❌ " +
@@ -695,7 +701,7 @@ document
 
 
 // =====================================
-// PROFILE PICTURE
+// PROFILE PICTURE UPLOAD
 // =====================================
 
 profileFile
@@ -709,31 +715,103 @@ profileFile
       if (!file) return;
 
 
+      // -------------------------------
+      // CHECK SESSION
+      // -------------------------------
+
+      pictureStatus.textContent =
+        "Checking login session...";
+
+
       const {
         data: {
-          user
-        }
+          session
+        },
+        error: sessionError
       } =
-        await supabase.auth.getUser();
+        await supabase.auth.getSession();
 
 
-      if (!user) {
+      console.log(
+        "SESSION:",
+        session
+      );
+
+      console.log(
+        "SESSION ERROR:",
+        sessionError
+      );
+
+
+      if (sessionError) {
 
         pictureStatus.textContent =
-          "❌ Not logged in.";
+          "❌ Session error: " +
+          sessionError.message;
+
+        return;
+      }
+
+
+      if (!session || !session.user) {
+
+        pictureStatus.textContent =
+          "❌ No active login session.";
+
+        return;
+      }
+
+
+      const user =
+        session.user;
+
+
+      console.log(
+        "USER ID:",
+        user.id
+      );
+
+      console.log(
+        "USER EMAIL:",
+        user.email
+      );
+
+
+      // -------------------------------
+      // CHECK FILE
+      // -------------------------------
+
+      if (!file.type.startsWith("image/")) {
+
+        pictureStatus.textContent =
+          "❌ Please select an image.";
+
+        return;
+      }
+
+
+      if (file.size > 5 * 1024 * 1024) {
+
+        pictureStatus.textContent =
+          "❌ Image must be under 5MB.";
 
         return;
       }
 
 
       pictureStatus.textContent =
-        "Uploading...";
+        "Uploading picture...";
 
+
+      // -------------------------------
+      // FILE PATH
+      // -------------------------------
 
       const extension =
         file.name
           .split(".")
-          .pop();
+          .pop()
+          .toLowerCase();
 
 
       const filePath =
@@ -742,7 +820,18 @@ profileFile
         extension;
 
 
+      console.log(
+        "UPLOAD PATH:",
+        filePath
+      );
+
+
+      // -------------------------------
+      // UPLOAD
+      // -------------------------------
+
       const {
+        data: uploadData,
         error: uploadError
       } =
         await supabase.storage
@@ -757,9 +846,18 @@ profileFile
           );
 
 
-      if (uploadError) {
+      console.log(
+        "UPLOAD RESULT:",
+        uploadData
+      );
 
-        console.error(uploadError);
+      console.log(
+        "UPLOAD ERROR:",
+        uploadError
+      );
+
+
+      if (uploadError) {
 
         pictureStatus.textContent =
           "❌ Upload failed: " +
@@ -769,8 +867,16 @@ profileFile
       }
 
 
+      pictureStatus.textContent =
+        "Picture uploaded. Saving URL...";
+
+
+      // -------------------------------
+      // PUBLIC URL
+      // -------------------------------
+
       const {
-        data
+        data: publicUrlData
       } =
         supabase.storage
           .from("profile-pictures")
@@ -780,12 +886,22 @@ profileFile
 
 
       const imageUrl =
-        data.publicUrl;
+        publicUrlData.publicUrl;
+
+
+      console.log(
+        "IMAGE URL:",
+        imageUrl
+      );
 
 
       profilePicture.src =
         imageUrl;
 
+
+      // -------------------------------
+      // SAVE URL TO PROFILE
+      // -------------------------------
 
       const {
         error: profileError
@@ -794,7 +910,8 @@ profileFile
           .from("profiles")
           .upsert({
 
-            user_id: user.id,
+            user_id:
+              user.id,
 
             profile_picture:
               imageUrl,
@@ -807,17 +924,21 @@ profileFile
 
       if (profileError) {
 
-        console.error(profileError);
+        console.error(
+          "PROFILE UPDATE ERROR:",
+          profileError
+        );
 
         pictureStatus.textContent =
-          "Image uploaded but profile update failed.";
+          "⚠️ Picture uploaded, but profile URL couldn't be saved: " +
+          profileError.message;
 
         return;
       }
 
 
       pictureStatus.textContent =
-        "✅ Picture updated!";
+        "✅ Profile picture updated!";
 
     }
   );
@@ -859,7 +980,8 @@ document
         .from("users")
         .upsert({
 
-          user_id: user.id,
+          user_id:
+            user.id,
 
           saved_text:
             noteBox.value,
@@ -871,6 +993,11 @@ document
 
 
     if (error) {
+
+      console.error(
+        "NOTE SAVE ERROR:",
+        error
+      );
 
       noteStatus.textContent =
         "❌ " +
@@ -904,7 +1031,10 @@ async function loadNote(user) {
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "NOTE LOAD ERROR:",
+      error
+    );
 
     return;
   }
@@ -921,6 +1051,28 @@ async function loadNote(user) {
 
 
 // =====================================
+// SHOW APP
+// =====================================
+
+async function showUserApp(user) {
+
+  authSection.style.display =
+    "none";
+
+  appSection.style.display =
+    "block";
+
+  userEmail.textContent =
+    user.email;
+
+  await loadProfile(user);
+
+  await loadNote(user);
+
+}
+
+
+// =====================================
 // AUTH STATE
 // =====================================
 
@@ -928,27 +1080,17 @@ supabase.auth
   .onAuthStateChange(
     async (event, session) => {
 
+      console.log(
+        "AUTH EVENT:",
+        event
+      );
+
+
       if (session && session.user) {
 
-        const user =
-          session.user;
-
-
-        authSection.style.display =
-          "none";
-
-        appSection.style.display =
-          "block";
-
-
-        userEmail.textContent =
-          user.email;
-
-
-        await loadProfile(user);
-
-        await loadNote(user);
-
+        await showUserApp(
+          session.user
+        );
 
       } else {
 
@@ -981,20 +1123,7 @@ const {
 
 if (session && session.user) {
 
-  authSection.style.display =
-    "none";
-
-  appSection.style.display =
-    "block";
-
-  userEmail.textContent =
-    session.user.email;
-
-  await loadProfile(
-    session.user
-  );
-
-  await loadNote(
+  await showUserApp(
     session.user
   );
 
