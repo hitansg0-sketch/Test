@@ -2,36 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wings App</title>
 </head>
-<body style="font-family: sans-serif; max-width: 400px; margin: auto; padding: 20px;">
+
+<body style="font-family:sans-serif; max-width:400px; margin:auto; padding:20px;">
 
   <!-- Authentication Section -->
   <div id="auth-section">
     <h2>Wings Login & Signup</h2>
-    <input id="email" type="email" placeholder="Email" style="width:100%; margin-bottom:10px; padding:8px;"><br>
-    <input id="pass" type="password" placeholder="Password" style="width:100%; margin-bottom:10px; padding:8px;"><br>
-    <button onclick="login()" style="width:48%; padding:8px;">Log In</button>
-    <button onclick="signup()" style="width:48%; padding:8px;">Sign Up</button>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+      style="width:100%; box-sizing:border-box; margin-bottom:10px; padding:10px;"
+    >
+
+    <input
+      id="pass"
+      type="password"
+      placeholder="Password"
+      style="width:100%; box-sizing:border-box; margin-bottom:10px; padding:10px;"
+    >
+
+    <button onclick="login()" style="width:48%; padding:10px;">
+      Log In
+    </button>
+
+    <button onclick="signup()" style="width:48%; padding:10px;">
+      Sign Up
+    </button>
+
+    <p id="auth-status"></p>
   </div>
 
-  <!-- App Section (Hidden until logged in) -->
-  <div id="app-section" style="display: none;">
+
+  <!-- App Section -->
+  <div id="app-section" style="display:none;">
+
     <h2>Welcome, <span id="user-display"></span></h2>
-    <button onclick="logout()" style="padding:5px 10px; margin-bottom:15px;">Log Out</button>
+
+    <button
+      onclick="logout()"
+      style="padding:6px 12px; margin-bottom:15px;"
+    >
+      Log Out
+    </button>
+
     <h3>Your Saved Note:</h3>
-    <textarea id="note-box" style="width: 100%; height: 100px; padding:8px;"></textarea><br><br>
-    <button onclick="saveNote()" style="width:100%; padding:10px; background:#4CAF50; color:white; border:none; cursor:pointer;">Save to Cloud</button>
+
+    <textarea
+      id="note-box"
+      placeholder="Write something..."
+      style="width:100%; height:120px; box-sizing:border-box; padding:10px;"
+    ></textarea>
+
+    <br><br>
+
+    <button
+      id="save-button"
+      onclick="saveNote()"
+      style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; cursor:pointer;"
+    >
+      Save to Cloud
+    </button>
+
+    <p id="save-status"></p>
+
   </div>
+
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // TODO: Replace placeholders with actual credentials from your Firebase Console
+    // Firebase
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+    // Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyA-0R_fOTkrU59ACvPpBY-6RBDOhiTTpm8", 
+      apiKey: "AIzaSyA-0R_fOTkrU59ACvPpBY-6RBDOhiTTpm8",
       authDomain: "wings-6c6aa.firebaseapp.com",
       projectId: "wings-6c6aa",
       storageBucket: "wings-6c6aa.appspot.com",
@@ -39,43 +105,248 @@
       appId: "1:960472992388:web:3979fadda252d3f446d0d1"
     };
 
+
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Auth Actions
-    window.signup = () => createUserWithEmailAndPassword(auth, email.value, pass.value).catch(err => alert(err.message));
-    window.login = () => signInWithEmailAndPassword(auth, email.value, pass.value).catch(err => alert(err.message));
-    window.logout = () => signOut(auth);
 
-    // Database Actions
-    window.saveNote = () => {
-      setDoc(doc(db, "users", auth.currentUser.uid), { savedText: note-box.value }, { merge: true })
-        .then(() => alert("Saved!"))
-        .catch(err => alert("Error saving: " + err.message));
+    // Get elements
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("pass");
+    const noteBox = document.getElementById("note-box");
+
+    const authSection = document.getElementById("auth-section");
+    const appSection = document.getElementById("app-section");
+
+    const userDisplay = document.getElementById("user-display");
+
+    const authStatus = document.getElementById("auth-status");
+    const saveStatus = document.getElementById("save-status");
+    const saveButton = document.getElementById("save-button");
+
+
+    // =========================
+    // SIGN UP
+    // =========================
+
+    window.signup = async () => {
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        authStatus.textContent = "Please enter an email and password.";
+        return;
+      }
+
+      authStatus.textContent = "Creating account...";
+
+      try {
+
+        await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        authStatus.textContent = "";
+
+      } catch (error) {
+
+        console.error(error);
+        authStatus.textContent = "Signup error: " + error.message;
+
+      }
     };
 
-    // Listen to Auth State changes & Sync in Realtime
-    let unsubscribeFirestore = null;
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("auth-section").style.display = "none";
-        document.getElementById("app-section").style.display = "block";
-        document.getElementById("user-display").innerText = user.email;
 
-        // Syncs notes seamlessly between devices in real-time
-        unsubscribeFirestore = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-          if (docSnap.exists()) {
-            document.getElementById("note-box").value = docSnap.data().savedText || "";
-          }
-        });
-      } else {
-        document.getElementById("auth-section").style.display = "block";
-        document.getElementById("app-section").style.display = "none";
-        if (unsubscribeFirestore) unsubscribeFirestore();
-        document.getElementById("note-box").value = "";
+    // =========================
+    // LOGIN
+    // =========================
+
+    window.login = async () => {
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        authStatus.textContent = "Please enter an email and password.";
+        return;
       }
+
+      authStatus.textContent = "Logging in...";
+
+      try {
+
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        authStatus.textContent = "";
+
+      } catch (error) {
+
+        console.error(error);
+        authStatus.textContent = "Login error: " + error.message;
+
+      }
+    };
+
+
+    // =========================
+    // LOGOUT
+    // =========================
+
+    window.logout = async () => {
+
+      try {
+
+        await signOut(auth);
+
+      } catch (error) {
+
+        console.error(error);
+        alert("Logout error: " + error.message);
+
+      }
+    };
+
+
+    // =========================
+    // SAVE NOTE
+    // =========================
+
+    window.saveNote = async () => {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        saveStatus.textContent = "You are not logged in.";
+        return;
+      }
+
+      const text = noteBox.value;
+
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+      saveStatus.textContent = "Saving to cloud...";
+
+      try {
+
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            savedText: text,
+            updatedAt: new Date().toISOString()
+          },
+          {
+            merge: true
+          }
+        );
+
+        saveStatus.textContent = "✓ Saved to cloud";
+        saveButton.textContent = "Saved ✓";
+
+        setTimeout(() => {
+          saveButton.textContent = "Save to Cloud";
+          saveButton.disabled = false;
+        }, 1500);
+
+      } catch (error) {
+
+        console.error("Firestore save error:", error);
+
+        saveStatus.textContent =
+          "❌ Save failed: " + error.message;
+
+        saveButton.textContent = "Try Again";
+        saveButton.disabled = false;
+
+      }
+    };
+
+
+    // =========================
+    // FIRESTORE REAL-TIME SYNC
+    // =========================
+
+    let unsubscribeFirestore = null;
+
+
+    onAuthStateChanged(auth, (user) => {
+
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+        unsubscribeFirestore = null;
+      }
+
+
+      if (user) {
+
+        // Show app
+        authSection.style.display = "none";
+        appSection.style.display = "block";
+
+        userDisplay.textContent = user.email;
+
+
+        // Listen to user's document
+        const userDocument = doc(
+          db,
+          "users",
+          user.uid
+        );
+
+
+        unsubscribeFirestore = onSnapshot(
+          userDocument,
+
+          (snapshot) => {
+
+            if (snapshot.exists()) {
+
+              const data = snapshot.data();
+
+              // Don't overwrite unnecessarily
+              if (document.activeElement !== noteBox) {
+                noteBox.value = data.savedText || "";
+              }
+
+            }
+
+          },
+
+          (error) => {
+
+            console.error(
+              "Firestore listener error:",
+              error
+            );
+
+            saveStatus.textContent =
+              "Cloud sync error: " + error.message;
+
+          }
+        );
+
+      } else {
+
+        // Show login
+        authSection.style.display = "block";
+        appSection.style.display = "none";
+
+        noteBox.value = "";
+        userDisplay.textContent = "";
+
+      }
+
     });
+
   </script>
+
 </body>
 </html>
