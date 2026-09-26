@@ -1,41 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Wings Discord Test</title>
+  <meta charset="UTF-8">
+  <title>Wings App</title>
 </head>
-<body>
+<body style="font-family: sans-serif; max-width: 400px; margin: auto; padding: 20px;">
 
-<button onclick="sendToDiscord()">
-    Send to Discord
-</button>
+  <!-- Authentication Section -->
+  <div id="auth-section">
+    <h2>Wings Login & Signup</h2>
+    <input id="email" type="email" placeholder="Email" style="width:100%; margin-bottom:10px; padding:8px;"><br>
+    <input id="pass" type="password" placeholder="Password" style="width:100%; margin-bottom:10px; padding:8px;"><br>
+    <button onclick="login()" style="width:48%; padding:8px;">Log In</button>
+    <button onclick="signup()" style="width:48%; padding:8px;">Sign Up</button>
+  </div>
 
-<script>
-async function sendToDiscord() {
-    try {
-        const response = await fetch(
-            "http://de1.bot-hosting.cloud:25338/send",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }
-        );
+  <!-- App Section (Hidden until logged in) -->
+  <div id="app-section" style="display: none;">
+    <h2>Welcome, <span id="user-display"></span></h2>
+    <button onclick="logout()" style="padding:5px 10px; margin-bottom:15px;">Log Out</button>
+    <h3>Your Saved Note:</h3>
+    <textarea id="note-box" style="width: 100%; height: 100px; padding:8px;"></textarea><br><br>
+    <button onclick="saveNote()" style="width:100%; padding:10px; background:#4CAF50; color:white; border:none; cursor:pointer;">Save to Cloud</button>
+  </div>
 
-        const data = await response.json();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        if (data.success) {
-            alert("✅ Sent to Discord!");
-        } else {
-            alert("❌ Failed");
-        }
+    // TODO: Replace placeholders with actual credentials from your Firebase Console
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-0R_fOTkrU59ACvPpBY-6RBDOhiTTpm8", 
+      authDomain: "wings-6c6aa.firebaseapp.com",
+      projectId: "wings-6c6aa",
+      storageBucket: "wings-6c6aa.appspot.com",
+      messagingSenderId: "960472992388",
+      appId: "1:960472992388:web:3979fadda252d3f446d0d1"
+    };
 
-    } catch (error) {
-        console.error(error);
-        alert("❌ Could not connect to bot");
-    }
-}
-</script>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
+    // Auth Actions
+    window.signup = () => createUserWithEmailAndPassword(auth, email.value, pass.value).catch(err => alert(err.message));
+    window.login = () => signInWithEmailAndPassword(auth, email.value, pass.value).catch(err => alert(err.message));
+    window.logout = () => signOut(auth);
+
+    // Database Actions
+    window.saveNote = () => {
+      setDoc(doc(db, "users", auth.currentUser.uid), { savedText: note-box.value }, { merge: true })
+        .then(() => alert("Saved!"))
+        .catch(err => alert("Error saving: " + err.message));
+    };
+
+    // Listen to Auth State changes & Sync in Realtime
+    let unsubscribeFirestore = null;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("app-section").style.display = "block";
+        document.getElementById("user-display").innerText = user.email;
+
+        // Syncs notes seamlessly between devices in real-time
+        unsubscribeFirestore = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            document.getElementById("note-box").value = docSnap.data().savedText || "";
+          }
+        });
+      } else {
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("app-section").style.display = "none";
+        if (unsubscribeFirestore) unsubscribeFirestore();
+        document.getElementById("note-box").value = "";
+      }
+    });
+  </script>
 </body>
 </html>
