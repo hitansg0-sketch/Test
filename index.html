@@ -1,497 +1,1006 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wings App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Wings</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #111;
+}
+
+.container {
+  max-width: 430px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.primary {
+  width: 100%;
+  background: #111;
+  color: white;
+}
+
+.secondary {
+  background: #eee;
+  color: #111;
+}
+
+.danger {
+  background: #e53935;
+  color: white;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+.status {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.profile-picture-wrapper {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.profile-picture {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+  display: block;
+  margin: auto;
+  border: 4px solid #eee;
+}
+
+.upload-label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: #eee;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#profile-file {
+  display: none;
+}
+
+.email {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+</style>
 </head>
 
-<body style="font-family:sans-serif; max-width:400px; margin:auto; padding:20px;">
 
-  <!-- LOGIN / SIGNUP -->
+<body>
+
+<div class="container">
+
+  <!-- ========================= -->
+  <!-- AUTH -->
+  <!-- ========================= -->
+
   <div id="auth-section">
 
-    <h2>Wings Login & Signup</h2>
+    <div class="card">
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Email"
-      style="width:100%; box-sizing:border-box; margin-bottom:10px; padding:10px;"
-    >
+      <h1>Wings</h1>
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password"
-      style="width:100%; box-sizing:border-box; margin-bottom:10px; padding:10px;"
-    >
+      <h2>Login</h2>
 
-    <button
-      id="login-btn"
-      style="width:48%; padding:10px;"
-    >
-      Log In
-    </button>
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+      >
 
-    <button
-      id="signup-btn"
-      style="width:48%; padding:10px;"
-    >
-      Sign Up
-    </button>
+      <input
+        id="password"
+        type="password"
+        placeholder="Password"
+      >
 
-    <p id="auth-status"></p>
+      <div class="row">
+
+        <button
+          id="login-btn"
+          class="primary"
+        >
+          Log In
+        </button>
+
+        <button
+          id="signup-btn"
+          class="secondary"
+        >
+          Sign Up
+        </button>
+
+      </div>
+
+      <p
+        id="auth-status"
+        class="status"
+      ></p>
+
+    </div>
 
   </div>
 
 
+  <!-- ========================= -->
   <!-- APP -->
-  <div id="app-section" style="display:none;">
+  <!-- ========================= -->
 
-    <h2>
-      Welcome, <span id="user-display"></span>
-    </h2>
+  <div
+    id="app-section"
+    style="display:none;"
+  >
 
-    <button
-      id="logout-btn"
-      style="padding:7px 12px; margin-bottom:15px;"
-    >
-      Log Out
-    </button>
+    <!-- PROFILE -->
 
-    <h3>Your Saved Note:</h3>
+    <div class="card">
 
-    <textarea
-      id="note-box"
-      placeholder="Write something..."
-      style="width:100%; height:120px; box-sizing:border-box; padding:10px;"
-    ></textarea>
+      <h2>Your Profile</h2>
 
-    <br><br>
+      <p
+        id="user-email"
+        class="email"
+      ></p>
 
-    <button
-      id="save-btn"
-      style="
-        width:100%;
-        padding:12px;
-        background:#4CAF50;
-        color:white;
-        border:none;
-        cursor:pointer;
-      "
-    >
-      Save to Cloud
-    </button>
 
-    <p id="save-status"></p>
+      <div class="profile-picture-wrapper">
+
+        <img
+          id="profile-picture"
+          class="profile-picture"
+          src=""
+          alt="Profile Picture"
+        >
+
+        <label
+          class="upload-label"
+          for="profile-file"
+        >
+          Change Picture
+        </label>
+
+        <input
+          id="profile-file"
+          type="file"
+          accept="image/*"
+        >
+
+        <p
+          id="picture-status"
+          class="status"
+        ></p>
+
+      </div>
+
+
+      <input
+        id="profile-name"
+        type="text"
+        placeholder="Profile Name"
+      >
+
+      <textarea
+        id="bio"
+        placeholder="Bio"
+      ></textarea>
+
+
+      <h3>Address</h3>
+
+      <textarea
+        id="address"
+        placeholder="Full Address"
+      ></textarea>
+
+      <input
+        id="phone"
+        type="tel"
+        placeholder="Phone Number"
+      >
+
+      <input
+        id="city"
+        type="text"
+        placeholder="City"
+      >
+
+      <input
+        id="state"
+        type="text"
+        placeholder="State"
+      >
+
+      <input
+        id="pincode"
+        type="text"
+        placeholder="PIN Code"
+      >
+
+
+      <button
+        id="save-profile-btn"
+        class="primary"
+      >
+        Save Profile
+      </button>
+
+      <p
+        id="profile-status"
+        class="status"
+      ></p>
+
+    </div>
+
+
+    <!-- SAVED NOTE -->
+
+    <div class="card">
+
+      <h2>Cloud Note</h2>
+
+      <textarea
+        id="note-box"
+        placeholder="Write something..."
+      ></textarea>
+
+      <button
+        id="save-note-btn"
+        class="primary"
+      >
+        Save to Cloud
+      </button>
+
+      <p
+        id="note-status"
+        class="status"
+      ></p>
+
+    </div>
+
+
+    <!-- LOGOUT -->
+
+    <div class="card">
+
+      <button
+        id="logout-btn"
+        class="danger"
+        style="width:100%;"
+      >
+        Log Out
+      </button>
+
+    </div>
 
   </div>
 
-
-  <script type="module">
-
-    import { createClient }
-      from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+</div>
 
 
-    // ============================
-    // SUPABASE CONFIG
-    // ============================
+<script type="module">
 
-    const SUPABASE_URL =
-      "https://ckolqrstldnjnkfpypyf.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_babfAUwiWenPUg9io3WuOw_fxMO_fmt";
+import {
+  createClient
+} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 
-    const supabase = createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+// =====================================
+// SUPABASE
+// =====================================
+
+const SUPABASE_URL =
+  "https://ckolqrstldnjnkfpypyf.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_babfAUwiWenPUg9io3WuOw_fxMO_fmt";
+
+const supabase =
+  createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-    // ============================
-    // ELEMENTS
-    // ============================
+// =====================================
+// ELEMENTS
+// =====================================
 
-    const emailInput =
-      document.getElementById("email");
+const authSection =
+  document.getElementById("auth-section");
 
-    const passwordInput =
-      document.getElementById("password");
+const appSection =
+  document.getElementById("app-section");
 
-    const authSection =
-      document.getElementById("auth-section");
+const emailInput =
+  document.getElementById("email");
 
-    const appSection =
-      document.getElementById("app-section");
+const passwordInput =
+  document.getElementById("password");
 
-    const userDisplay =
-      document.getElementById("user-display");
+const authStatus =
+  document.getElementById("auth-status");
 
-    const noteBox =
-      document.getElementById("note-box");
+const userEmail =
+  document.getElementById("user-email");
 
-    const authStatus =
-      document.getElementById("auth-status");
+const profilePicture =
+  document.getElementById("profile-picture");
 
-    const saveStatus =
-      document.getElementById("save-status");
+const profileFile =
+  document.getElementById("profile-file");
 
-    const saveButton =
-      document.getElementById("save-btn");
+const pictureStatus =
+  document.getElementById("picture-status");
+
+const profileName =
+  document.getElementById("profile-name");
+
+const bio =
+  document.getElementById("bio");
+
+const address =
+  document.getElementById("address");
+
+const phone =
+  document.getElementById("phone");
+
+const city =
+  document.getElementById("city");
+
+const state =
+  document.getElementById("state");
+
+const pincode =
+  document.getElementById("pincode");
+
+const profileStatus =
+  document.getElementById("profile-status");
+
+const noteBox =
+  document.getElementById("note-box");
+
+const noteStatus =
+  document.getElementById("note-status");
 
 
-    // ============================
-    // SIGN UP
-    // ============================
+// =====================================
+// SIGN UP
+// =====================================
 
-    document
-      .getElementById("signup-btn")
-      .addEventListener("click", async () => {
+document
+  .getElementById("signup-btn")
+  .onclick = async () => {
 
-        const email =
-          emailInput.value.trim();
+    const email =
+      emailInput.value.trim();
 
-        const password =
-          passwordInput.value;
+    const password =
+      passwordInput.value;
 
-        if (!email || !password) {
-          authStatus.textContent =
-            "Please enter an email and password.";
-          return;
-        }
+    if (!email || !password) {
 
-        authStatus.textContent =
-          "Creating account...";
+      authStatus.textContent =
+        "Enter email and password.";
 
-        const { data, error } =
-          await supabase.auth.signUp({
-            email: email,
-            password: password
-          });
+      return;
+    }
 
-        if (error) {
+    authStatus.textContent =
+      "Creating account...";
 
-          console.error(error);
 
-          authStatus.textContent =
-            "Signup error: " + error.message;
-
-          return;
-        }
-
-        console.log("Signup successful:", data);
-
-        authStatus.textContent =
-          "✓ Account created!";
-
+    const {
+      error
+    } =
+      await supabase.auth.signUp({
+        email,
+        password
       });
 
 
-    // ============================
-    // LOGIN
-    // ============================
+    if (error) {
 
-    document
-      .getElementById("login-btn")
-      .addEventListener("click", async () => {
+      authStatus.textContent =
+        "Signup error: " +
+        error.message;
 
-        const email =
-          emailInput.value.trim();
-
-        const password =
-          passwordInput.value;
-
-        if (!email || !password) {
-          authStatus.textContent =
-            "Please enter an email and password.";
-          return;
-        }
-
-        authStatus.textContent =
-          "Logging in...";
-
-        const { data, error } =
-          await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-          });
-
-        if (error) {
-
-          console.error(error);
-
-          authStatus.textContent =
-            "Login error: " + error.message;
-
-          return;
-        }
-
-        console.log("Login successful:", data);
-
-        authStatus.textContent =
-          "✓ Logged in!";
-
-      });
-
-
-    // ============================
-    // LOGOUT
-    // ============================
-
-    document
-      .getElementById("logout-btn")
-      .addEventListener("click", async () => {
-
-        await supabase.auth.signOut();
-
-      });
-
-
-    // ============================
-    // LOAD USER DATA
-    // ============================
-
-    async function loadUserData(user) {
-
-      console.log(
-        "Loading data for:",
-        user.id
-      );
-
-      const { data, error } =
-        await supabase
-          .from("users")
-          .select("saved_text")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-
-      if (error) {
-
-        console.error(
-          "Load error:",
-          error
-        );
-
-        saveStatus.textContent =
-          "Cloud load error: " +
-          error.message;
-
-        return;
-      }
-
-
-      if (data) {
-
-        noteBox.value =
-          data.saved_text || "";
-
-        console.log(
-          "Cloud data loaded."
-        );
-
-      } else {
-
-        console.log(
-          "No saved data yet."
-        );
-
-      }
-
+      return;
     }
 
 
-    // ============================
-    // SAVE TO CLOUD
-    // ============================
+    authStatus.textContent =
+      "✓ Account created!";
+};
 
-    async function saveNote() {
+
+// =====================================
+// LOGIN
+// =====================================
+
+document
+  .getElementById("login-btn")
+  .onclick = async () => {
+
+    const email =
+      emailInput.value.trim();
+
+    const password =
+      passwordInput.value;
+
+    if (!email || !password) {
+
+      authStatus.textContent =
+        "Enter email and password.";
+
+      return;
+    }
+
+    authStatus.textContent =
+      "Logging in...";
+
+
+    const {
+      error
+    } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+
+    if (error) {
+
+      authStatus.textContent =
+        "Login error: " +
+        error.message;
+
+      return;
+    }
+
+
+    authStatus.textContent =
+      "✓ Logged in!";
+};
+
+
+// =====================================
+// LOGOUT
+// =====================================
+
+document
+  .getElementById("logout-btn")
+  .onclick = async () => {
+
+    await supabase.auth.signOut();
+
+};
+
+
+// =====================================
+// LOAD PROFILE
+// =====================================
+
+async function loadProfile(user) {
+
+  const {
+    data,
+    error
+  } =
+    await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+
+  if (error) {
+
+    console.error(error);
+
+    profileStatus.textContent =
+      "Profile load error: " +
+      error.message;
+
+    return;
+  }
+
+
+  if (!data) {
+
+    profilePicture.src =
+      "https://placehold.co/120x120";
+
+    return;
+  }
+
+
+  profileName.value =
+    data.profile_name || "";
+
+  bio.value =
+    data.bio || "";
+
+  address.value =
+    data.address || "";
+
+  phone.value =
+    data.phone || "";
+
+  city.value =
+    data.city || "";
+
+  state.value =
+    data.state || "";
+
+  pincode.value =
+    data.pincode || "";
+
+
+  if (data.profile_picture) {
+
+    profilePicture.src =
+      data.profile_picture;
+
+  } else {
+
+    profilePicture.src =
+      "https://placehold.co/120x120";
+  }
+
+}
+
+
+// =====================================
+// SAVE PROFILE
+// =====================================
+
+document
+  .getElementById("save-profile-btn")
+  .onclick = async () => {
+
+    const {
+      data: {
+        user
+      }
+    } =
+      await supabase.auth.getUser();
+
+
+    if (!user) {
+
+      profileStatus.textContent =
+        "❌ Not logged in.";
+
+      return;
+    }
+
+
+    profileStatus.textContent =
+      "Saving profile...";
+
+
+    const {
+      error
+    } =
+      await supabase
+        .from("profiles")
+        .upsert({
+
+          user_id: user.id,
+
+          profile_name:
+            profileName.value,
+
+          bio:
+            bio.value,
+
+          address:
+            address.value,
+
+          phone:
+            phone.value,
+
+          city:
+            city.value,
+
+          state:
+            state.value,
+
+          pincode:
+            pincode.value,
+
+          updated_at:
+            new Date().toISOString()
+
+        });
+
+
+    if (error) {
+
+      console.error(error);
+
+      profileStatus.textContent =
+        "❌ " +
+        error.message;
+
+      return;
+    }
+
+
+    profileStatus.textContent =
+      "✅ Profile saved!";
+};
+
+
+// =====================================
+// PROFILE PICTURE
+// =====================================
+
+profileFile
+  .addEventListener(
+    "change",
+    async () => {
+
+      const file =
+        profileFile.files[0];
+
+      if (!file) return;
+
 
       const {
         data: {
           user
         }
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
 
       if (!user) {
 
-        saveStatus.textContent =
-          "❌ You are not logged in.";
+        pictureStatus.textContent =
+          "❌ Not logged in.";
 
         return;
       }
 
 
-      saveButton.disabled = true;
-
-      saveButton.textContent =
-        "Saving...";
-
-      saveStatus.textContent =
-        "☁️ Saving to cloud...";
+      pictureStatus.textContent =
+        "Uploading...";
 
 
-      console.log(
-        "Saving for user:",
-        user.id
-      );
+      const extension =
+        file.name
+          .split(".")
+          .pop();
 
 
-      const { error } =
-        await supabase
-          .from("users")
-          .upsert(
+      const filePath =
+        user.id +
+        "/profile." +
+        extension;
+
+
+      const {
+        error: uploadError
+      } =
+        await supabase.storage
+          .from("profile-pictures")
+          .upload(
+            filePath,
+            file,
             {
-              user_id: user.id,
-              saved_text: noteBox.value,
-              updated_at: new Date().toISOString()
-            },
-            {
-              onConflict: "user_id"
+              upsert: true,
+              contentType: file.type
             }
           );
 
 
-      if (error) {
+      if (uploadError) {
 
-        console.error(
-          "SAVE ERROR:",
-          error
-        );
+        console.error(uploadError);
 
-        saveStatus.textContent =
-          "❌ Save failed: " +
-          error.message;
-
-        saveButton.textContent =
-          "Try Again";
-
-        saveButton.disabled = false;
+        pictureStatus.textContent =
+          "❌ Upload failed: " +
+          uploadError.message;
 
         return;
       }
 
 
-      console.log(
-        "SAVE SUCCESSFUL"
-      );
+      const {
+        data
+      } =
+        supabase.storage
+          .from("profile-pictures")
+          .getPublicUrl(
+            filePath
+          );
 
 
-      saveStatus.textContent =
-        "✅ Saved to cloud!";
-
-      saveButton.textContent =
-        "Saved ✓";
+      const imageUrl =
+        data.publicUrl;
 
 
-      setTimeout(() => {
+      profilePicture.src =
+        imageUrl;
 
-        saveButton.textContent =
-          "Save to Cloud";
 
-        saveButton.disabled =
-          false;
+      const {
+        error: profileError
+      } =
+        await supabase
+          .from("profiles")
+          .upsert({
 
-      }, 2000);
+            user_id: user.id,
+
+            profile_picture:
+              imageUrl,
+
+            updated_at:
+              new Date().toISOString()
+
+          });
+
+
+      if (profileError) {
+
+        console.error(profileError);
+
+        pictureStatus.textContent =
+          "Image uploaded but profile update failed.";
+
+        return;
+      }
+
+
+      pictureStatus.textContent =
+        "✅ Picture updated!";
 
     }
+  );
 
 
-    document
-      .getElementById("save-btn")
-      .addEventListener(
-        "click",
-        saveNote
-      );
+// =====================================
+// SAVE NOTE
+// =====================================
 
-
-    // ============================
-    // AUTH STATE
-    // ============================
-
-    supabase.auth.onAuthStateChange(
-      async (event, session) => {
-
-        console.log(
-          "Auth event:",
-          event
-        );
-
-
-        if (session && session.user) {
-
-          const user =
-            session.user;
-
-
-          authSection.style.display =
-            "none";
-
-          appSection.style.display =
-            "block";
-
-
-          userDisplay.textContent =
-            user.email;
-
-
-          await loadUserData(user);
-
-
-        } else {
-
-          authSection.style.display =
-            "block";
-
-          appSection.style.display =
-            "none";
-
-          userDisplay.textContent =
-            "";
-
-          noteBox.value =
-            "";
-
-        }
-
-      }
-    );
-
-
-    // ============================
-    // CHECK EXISTING SESSION
-    // ============================
+document
+  .getElementById("save-note-btn")
+  .onclick = async () => {
 
     const {
       data: {
-        session
+        user
       }
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth.getUser();
 
 
-    if (session && session.user) {
+    if (!user) {
 
-      authSection.style.display =
-        "none";
+      noteStatus.textContent =
+        "❌ Not logged in.";
 
-      appSection.style.display =
-        "block";
-
-      userDisplay.textContent =
-        session.user.email;
-
-      await loadUserData(
-        session.user
-      );
-
+      return;
     }
 
-  </script>
+
+    noteStatus.textContent =
+      "Saving...";
+
+
+    const {
+      error
+    } =
+      await supabase
+        .from("users")
+        .upsert({
+
+          user_id: user.id,
+
+          saved_text:
+            noteBox.value,
+
+          updated_at:
+            new Date().toISOString()
+
+        });
+
+
+    if (error) {
+
+      noteStatus.textContent =
+        "❌ " +
+        error.message;
+
+      return;
+    }
+
+
+    noteStatus.textContent =
+      "✅ Saved to cloud!";
+};
+
+
+// =====================================
+// LOAD NOTE
+// =====================================
+
+async function loadNote(user) {
+
+  const {
+    data,
+    error
+  } =
+    await supabase
+      .from("users")
+      .select("saved_text")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+
+  if (error) {
+
+    console.error(error);
+
+    return;
+  }
+
+
+  if (data) {
+
+    noteBox.value =
+      data.saved_text || "";
+
+  }
+
+}
+
+
+// =====================================
+// AUTH STATE
+// =====================================
+
+supabase.auth
+  .onAuthStateChange(
+    async (event, session) => {
+
+      if (session && session.user) {
+
+        const user =
+          session.user;
+
+
+        authSection.style.display =
+          "none";
+
+        appSection.style.display =
+          "block";
+
+
+        userEmail.textContent =
+          user.email;
+
+
+        await loadProfile(user);
+
+        await loadNote(user);
+
+
+      } else {
+
+        authSection.style.display =
+          "block";
+
+        appSection.style.display =
+          "none";
+
+        noteBox.value =
+          "";
+
+      }
+
+    }
+  );
+
+
+// =====================================
+// EXISTING SESSION
+// =====================================
+
+const {
+  data: {
+    session
+  }
+} =
+  await supabase.auth.getSession();
+
+
+if (session && session.user) {
+
+  authSection.style.display =
+    "none";
+
+  appSection.style.display =
+    "block";
+
+  userEmail.textContent =
+    session.user.email;
+
+  await loadProfile(
+    session.user
+  );
+
+  await loadNote(
+    session.user
+  );
+
+}
+
+</script>
 
 </body>
 </html>
